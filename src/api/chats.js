@@ -135,10 +135,6 @@ chatsAPI.post = async (caller, data) => {
 
 	return message;
 };
-// Ensure padLeft is defined or imported
-function padLeft(str, length) {
-	return str.padStart(length, '0');
-}
 
 // chatsAPI.update function
 chatsAPI.update = async (caller, data) => {

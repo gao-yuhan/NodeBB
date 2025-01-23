@@ -137,61 +137,56 @@ chatsAPI.post = async (caller, data) => {
 };
 // Ensure padLeft is defined or imported
 function padLeft(str, length) {
-    return str.padStart(length, '0');
+	return str.padStart(length, '0');
 }
 
 // chatsAPI.update function
 chatsAPI.update = async (caller, data) => {
-    if (!data || !data.roomId) {
-        throw new Error('[[error:invalid-data]]');
-    }
+	if (!data || !data.roomId) {
+		throw new Error('[[error:invalid-data]]');
+	}
 
-    if (data.hasOwnProperty('name') && (!data.name && data.name !== '')) {
-        throw new Error('[[error:invalid-data]]');
-    }
+	if (data.hasOwnProperty('name') && (!data.name && data.name !== '')) {
+		throw new Error('[[error:invalid-data]]');
+	}
 
-    if (data.hasOwnProperty('name')) {
-        await messaging.renameRoom(caller.uid, data.roomId, data.name);
-    }
+	if (data.hasOwnProperty('name')) {
+		await messaging.renameRoom(caller.uid, data.roomId, data.name);
+	}
 
-    const [roomData, isAdmin] = await Promise.all([
-        messaging.getRoomData(data.roomId),
-        user.isAdministrator(caller.uid),
-    ]);
+	const [roomData, isAdmin] = await Promise.all([
+		messaging.getRoomData(data.roomId),
+		user.isAdministrator(caller.uid),
+	]);
 
-    if (!roomData) {
-        throw new Error('[[error:invalid-data]]');
-    }
+	if (!roomData) {
+		throw new Error('[[error:invalid-data]]');
+	}
 
-    if (data.hasOwnProperty('groups') && roomData.public && isAdmin) {
-        await db.setObjectField(`chat:room:${data.roomId}`, 'groups', JSON.stringify(data.groups));
-    }
+	if (data.hasOwnProperty('groups') && roomData.public && isAdmin) {
+		await db.setObjectField(`chat:room:${data.roomId}`, 'groups', JSON.stringify(data.groups));
+	}
 
-    if (data.hasOwnProperty('notificationSetting') && isAdmin) {
-        await db.setObjectField(`chat:room:${data.roomId}`, 'notificationSetting', data.notificationSetting);
-    }
+	if (data.hasOwnProperty('notificationSetting') && isAdmin) {
+		await db.setObjectField(`chat:room:${data.roomId}`, 'notificationSetting', data.notificationSetting);
+	}
 
-    const loadedRoom = await messaging.loadRoom(caller.uid, { roomId: data.roomId });
+	const loadedRoom = await messaging.loadRoom(caller.uid, { roomId: data.roomId });
 
-    if (data.hasOwnProperty('name')) {
-        const ioRoom = require('../socket.io').in(`chat_room_${data.roomId}`);
-        if (ioRoom) {
-            ioRoom.emit('event:chats.roomRename', {
-                roomId: data.roomId,
-                newName: validator.escape(String(data.name)),
-                chatWithMessage: loadedRoom.chatWithMessage,
-            });
-        }
-    }
+	if (data.hasOwnProperty('name')) {
+		const ioRoom = require('../socket.io').in(`chat_room_${data.roomId}`);
+		if (ioRoom) {
+			ioRoom.emit('event:chats.roomRename', {
+				roomId: data.roomId,
+				newName: validator.escape(String(data.name)),
+				chatWithMessage: loadedRoom.chatWithMessage,
+			});
+		}
+	}
 
-    return loadedRoom;
+	return loadedRoom;
 };
 
-// Example of refactored padLeft usage
-function exampleUsage() {
-    const paddedNumber = padLeft('5', 2);
-    console.log(`Padded number: ${paddedNumber}`); // Output: Padded number: 05
-}
 
 
 chatsAPI.rename = async (caller, data) => {
